@@ -1,0 +1,33 @@
+/* Gawing black and white ang lahat ng buttons */
+.btn-primary, .btn-primary:hover, .btn-primary:active {
+    background-color: #333 !important; /* Dark Gray / Black */
+    border-color: #333 !important;
+    color: #fff !important;
+}
+
+/* I-set ang main background */
+body {
+    background-color: #f8f8f8; /* Very light gray */
+    color: #333; /* Dark text */
+}
+
+/* I-alis ang default colors sa navigation links */
+.navbar a, .navbar-brand {
+    color: #333 !important;
+}
+
+/* Gawing border lang at walang kulay ang cards/containers */
+.card, .container {
+    border-color: #ccc !important;
+    box-shadow: none !important;
+}
+
+/* Para sa Income/Expense color (Kung gusto mong i-retain ang green/red) */
+.text-success {
+    color: #008000 !important;
+}
+/* Green */
+.text-danger {
+    color: #cc0000 !important;
+}
+/* Red */

@@ -1,0 +1,28 @@
+﻿@model BudgetTracker.Models.ViewModels.ReportViewModel
+
+@{
+    ViewData["Title"] = "Monthly Report";
+    // I-extract ang Dictionary para mas madaling gamitin
+    var summary = Model.SummaryData;
+}
+
+<h2>@ViewData["Title"]</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <h4>Total Income:</h4>
+        <p class="h4 text-success">@summary.GetValueOrDefault("Income", 0).ToString("C2")</p>
+    </div>
+    <div class="col-md-4">
+        <h4>Total Expense:</h4>
+        <p class="h4 text-danger">@summary.GetValueOrDefault("Expense", 0).ToString("C2")</p>
+    </div>
+    <div class="col-md-4">
+        <h4>Net Balance:</h4>
+        @{
+            decimal balance = summary.GetValueOrDefault("Income", 0) - summary.GetValueOrDefault("Expense", 0);
+        }
+        <p class="h4 @(balance >= 0 ? "text-primary" : "text-danger")">@balance.ToString("C2")</p>
+    </div>
+</div>
