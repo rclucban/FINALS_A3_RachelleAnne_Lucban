@@ -1,44 +1,54 @@
-﻿using BudgetTracker.Data;
+﻿// FILE: BudgetService.cs
+
+using BudgetTracker.Data;
 using BudgetTracker.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System; // Tiyakin na kasama ito
 
-namespace BudgetTracker.Services
+public class BudgetService : IBudgetService
 {
-    // Ito na ang magiging EF Core implementation mo
-    public class BudgetService : IBudgetService
+    private readonly ApplicationDbContext _context;
+
+    public BudgetService(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-
-        public BudgetService(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
-        // 🎯 C. I-implement ang Add Transaction
-        public async Task AddTransactionAsync(Transaction transaction)
-        {
-            // Siguraduhing may Categories na naka-save sa DB bago ito gamitin!
-            _context.Transactions.Add(transaction);
-            await _context.SaveChangesAsync();
-        }
-
-        // 🎯 C. I-implement ang Get Monthly Report
-        public async Task<Dictionary<string, decimal>> GetMonthlyReportAsync(string userId, int year, int month)
-        {
-            var transactions = await _context.Transactions
-                .Include(t => t.Category)
-                .Where(t => t.UserId == userId && t.Date.Year == year && t.Date.Month == month)
-                .ToListAsync();
-
-            return transactions
-                .GroupBy(t => t.Category.Name)
-                .ToDictionary(g => g.Key, g => g.Sum(t => t.Amount));
-        }
-
-        // 🎯 C. I-implement ang Get Categories
-        public async Task<IEnumerable<Category>> GetCategoriesAsync()
-        {
-            return await _context.Categories.ToListAsync();
-        }
+        _context = context;
     }
-}
+
+    // ✅ IMPLEMENTATION 1: Get Categories
+    public async Task<IEnumerable<Category>> GetCategoriesAsync()
+    {
+        return await _context.Categories.ToListAsync();
+    }
+
+    // ✅ IMPLEMENTATION 2: Add Transaction
+    public async Task AddTransactionAsync(Transaction transaction)
+    {
+        _context.Transactions.Add(transaction);
+        await _context.SaveChangesAsync();
+    }
+
+    // ✅ IMPLEMENTATION 3: Get Monthly Transactions (Para sa Report)
+    public async Task<IEnumerable<Transaction>> GetMonthlyTransactionsAsync(int month)
+    {
+        // Tinitiyak na kasama ang Category object (.Include(t => t.Category))
+        return await _context.Transactions
+            .Include(t => t.Category)
+            .Where(t => t.Date.Month == month)
+            .OrderByDescending(t => t.Date)
+            .ToListAsync();
+    }
+
+    // ✅ IMPLEMENTATION 4: Get Summary Data
+    public Dictionary<string, decimal> GetSummaryData(IEnumerable<Transaction> transactions)
+    {
+        return transactions
+            .GroupBy(t => t.Category.Type)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(t => t.Amount)
+            );
+    }
+} 

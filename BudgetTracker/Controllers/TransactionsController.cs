@@ -30,10 +30,11 @@ public class TransactionsController : Controller
 
         var viewModel = new TransactionViewModel
         {
+            // ✅ FIX 1: Ginawang mas malinaw ang dropdown (e.g., "Salary (Income)")
             CategoryList = categories.Select(c => new SelectListItem
             {
                 Value = c.CategoryId.ToString(),
-                Text = c.Name
+                Text = $"{c.Name} ({c.Type})" // Idagdag ang Type para mas malinaw ang Savings option
             }).ToList(),
             Date = DateTime.Now
         };
@@ -50,12 +51,13 @@ public class TransactionsController : Controller
     {
         var userId = _userManager.GetUserId(User);
 
+        // ✅ FIX 2: Added a check for ModelState.IsValid and userId != null
         if (ModelState.IsValid && userId != null)
         {
             var transaction = new Transaction
             {
                 Amount = model.Amount,
-                CategoryId = model.CategoryId,
+                CategoryId = model.CategoryId, // <--- Ito ang Category ID ng Savings
                 Description = model.Description,
                 Date = model.Date,
                 UserId = userId
@@ -63,14 +65,16 @@ public class TransactionsController : Controller
 
             await _budgetService.AddTransactionAsync(transaction);
 
+            // Redirect sa Report page para makita agad ang resulta
             return RedirectToAction(nameof(Report));
         }
 
         // If validation fails, reload categories and return to view to preserve dropdown
+        // ✅ Tiyakin na iniload ulit ang CategoryList na may malinaw na Text
         model.CategoryList = (await _budgetService.GetCategoriesAsync()).Select(c => new SelectListItem
         {
             Value = c.CategoryId.ToString(),
-            Text = c.Name
+            Text = $"{c.Name} ({c.Type})"
         }).ToList();
 
         return View(model);
@@ -82,23 +86,16 @@ public class TransactionsController : Controller
     // ----------------------------------------------------------------------
     public async Task<IActionResult> Report()
     {
-        var userId = _userManager.GetUserId(User);
+        var allTransactions = await _budgetService.GetMonthlyTransactionsAsync(DateTime.Now.Month);
+        var summaryData = _budgetService.GetSummaryData(allTransactions);
 
-        if (userId == null)
-        {
-            return RedirectToAction("Login", "Account", new { area = "Identity" });
-        }
-
-        // Get report for the current month
-        var reportData = await _budgetService.GetMonthlyReportAsync(userId, DateTime.Now.Year, DateTime.Now.Month);
-
-        // GINAWA ANG TAMANG VIEWMODEL
         var viewModel = new ReportViewModel
         {
-            SummaryData = reportData
+            SummaryData = summaryData,
+            // I-assign ang na-fetch na transactions sa ViewModel
+            Transactions = allTransactions
         };
 
-        // **NAAYOS ITO:** Ipinasa na ang TAMANG OBJECT: viewModel (ReportViewModel)
         return View(viewModel);
     }
 }

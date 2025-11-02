@@ -1,16 +1,20 @@
-﻿using BudgetTracker.Models;
+﻿// FILE: IBudgetService.cs
 
-namespace BudgetTracker.Services
+using BudgetTracker.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public interface IBudgetService
 {
-    public interface IBudgetService
-    {
-        // CRUD operation
-        Task AddTransactionAsync(Transaction transaction);
+    // ✅ FIX 1: Para sa GET: /Transactions/Create
+    Task<IEnumerable<Category>> GetCategoriesAsync();
 
-        // Report Generation
-        Task<Dictionary<string, decimal>> GetMonthlyReportAsync(string userId, int year, int month);
+    // ✅ FIX 2: Para sa POST: /Transactions/Create
+    Task AddTransactionAsync(Transaction transaction);
 
-        // Utility: Fetch all Categories for dropdowns
-        Task<IEnumerable<Category>> GetCategoriesAsync();
-    }
+    // ✅ FIX 3: Para sa GET: /Transactions/Report
+    Task<IEnumerable<Transaction>> GetMonthlyTransactionsAsync(int month);
+
+    // ✅ FIX 4: Para sa Summary Data
+    Dictionary<string, decimal> GetSummaryData(IEnumerable<Transaction> transactions);
 }

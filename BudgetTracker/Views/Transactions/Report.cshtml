@@ -1,28 +1,301 @@
 ﻿@model BudgetTracker.Models.ViewModels.ReportViewModel
+@using System.Globalization
+
 
 @{
-    ViewData["Title"] = "Monthly Report";
-    // I-extract ang Dictionary para mas madaling gamitin
+    ViewData["Title"] = "Monthly Budget Tracker";
+    
+    // 1. Kuhanin at Kalkulahin ang Data
     var summary = Model.SummaryData;
+    decimal incomeTotal = summary.GetValueOrDefault("Income", 0);
+    decimal expenseTotal = summary.GetValueOrDefault("Expense", 0);
+    decimal balance = incomeTotal - expenseTotal;
+    
+    // 2. I-split ang Transactions
+    var incomeTransactions = Model.Transactions.Where(t => t.Category?.Type == "Income").ToList();
+    var expenseTransactions = Model.Transactions.Where(t => t.Category?.Type == "Expense").ToList();
+    var savingsTransactions = Model.Transactions.Where(t => t.Category?.Type == "Savings").ToList(); 
+    decimal savingsTotal = savingsTransactions.Sum(t => t.Amount);
 }
 
-<h2>@ViewData["Title"]</h2>
+<style>
+    /* Custom CSS for Purple Theme and Layout */
+    :root {
+        --primary-purple: #9C27B0; /* Malalim na Purple */
+        --summary-green: #4CAF50; /* Green */
+        --summary-red: #E91E63; /* Pink/Reddish */
+        --income-bg-header: #E0F7FA; /* Light Blue/Cyan */
+        --expense-bg-header: #FFEBEE; /* Light Pink/Red */
+        --savings-bg-header: #E8F5E9; /* Light Green */
+    }
+
+    .navbar {
+        background-color: var(--primary-purple) !important;
+    }
+    
+    /* Card/Dashboard Boxes */
+    .card-purple-header {
+        background-color: var(--primary-purple);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px 8px 0 0;
+        margin-bottom: 0;
+    }
+    
+    /* Balance Boxes */
+    .balance-box {
+        text-align: center;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .balance-opening {
+        background-color: var(--primary-purple);
+        color: white;
+    }
+    .balance-closing {
+        background-color: var(--summary-green);
+        color: white;
+    }
+    .summary-value {
+        font-size: 2em;
+        font-weight: bold;
+    }
+
+    /* Transaction Sections */
+    .transaction-section {
+        margin-top: 30px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .section-header {
+        padding: 10px 15px;
+        font-weight: bold;
+        color: #333;
+        border-bottom: 1px solid #ddd;
+    }
+    .income-header {
+        background-color: var(--income-bg-header);
+        border-left: 5px solid #00BCD4; 
+    }
+    .expense-header {
+        background-color: var(--expense-bg-header);
+        border-left: 5px solid #F44336;
+    }
+    .savings-header {
+        background-color: var(--savings-bg-header);
+        border-left: 5px solid #8BC34A;
+    }
+    .section-table th {
+        background-color: #E1BEE7; /* Light Purple for table header */
+        color: #333;
+    }
+</style>
+
+<h2 class="text-center" style="color: var(--primary-purple);">@ViewData["Title"]</h2>
 <hr />
 
-<div class="row">
-    <div class="col-md-4">
-        <h4>Total Income:</h4>
-        <p class="h4 text-success">@summary.GetValueOrDefault("Income", 0).ToString("C2")</p>
+<div class="row mb-5">
+    
+    <div class="col-md-3">
+        <div class="balance-box balance-opening">
+            <small>Total Income</small>
+            <div class="summary-value">@incomeTotal.ToString("C2", new CultureInfo("en-PH"))</div>
+        </div>
+        <div class="balance-box balance-closing">
+            <small>Net Balance</small>
+            <div class="summary-value">@balance.ToString("C2", new CultureInfo("en-PH"))</div>
+        </div>
+        <div class="balance-box" style="background-color: var(--summary-red); color: white;">
+            <small>Total Expense</small>
+            <div class="summary-value">@expenseTotal.ToString("C2", new CultureInfo("en-PH"))</div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <h4>Total Expense:</h4>
-        <p class="h4 text-danger">@summary.GetValueOrDefault("Expense", 0).ToString("C2")</p>
+
+    <div class="col-md-5">
+        <div class="card">
+            <h5 class="card-purple-header">Income vs Expenses Overview</h5>
+            <div class="card-body text-center" style="min-height: 250px;">
+                <canvas id="incomeExpenseChart"></canvas> 
+            </div>
+        </div>
     </div>
+
     <div class="col-md-4">
-        <h4>Net Balance:</h4>
-        @{
-            decimal balance = summary.GetValueOrDefault("Income", 0) - summary.GetValueOrDefault("Expense", 0);
-        }
-        <p class="h4 @(balance >= 0 ? "text-primary" : "text-danger")">@balance.ToString("C2")</p>
+        <div class="card">
+            <h5 class="card-purple-header">Summary Totals</h5>
+            <div class="card-body">
+                <table class="table table-sm" style="font-size: 1.1em;">
+                    <tr>
+                        <td style="background-color: #00BCD4; color: white;">Income</td>
+                        <td class="text-right font-weight-bold">@incomeTotal.ToString("C2", new CultureInfo("en-PH"))</td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #8BC34A; color: white;">Savings Goal</td>
+                        <td class="text-right font-weight-bold">@savingsTotal.ToString("C2", new CultureInfo("en-PH"))</td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #F44336; color: white;">Expenses</td>
+                        <td class="text-right font-weight-bold">@expenseTotal.ToString("C2", new CultureInfo("en-PH"))</td>
+                    </tr>
+                </table>
+                
+                <hr style="border-top: 2px dashed #ccc;">
+                
+                <table class="table table-sm" style="background-color: #f0f0f0;">
+                    <tr>
+                        <td>**Net Balance**</td>
+                        <td class="text-right text-primary font-weight-bold">@balance.ToString("C2", new CultureInfo("en-PH"))</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="transaction-section">
+            <h4 class="section-header income-header">Income Transactions (@incomeTotal.ToString("C2", new CultureInfo("en-PH")))</h4>
+            <div class="card-body">
+                <table class="table section-table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in incomeTransactions) 
+                        {
+                            <tr>
+                                <td>@transaction.Date.ToString("dd-MMM-yy")</td>
+                                <td>@transaction.Category?.Name</td>
+                                <td class="text-success font-weight-bold">@transaction.Amount.ToString("C2", new CultureInfo("en-PH"))</td>
+                                <td>@transaction.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-12">
+        <div class="transaction-section">
+            <h4 class="section-header expense-header">Expense Transactions (@expenseTotal.ToString("C2", new CultureInfo("en-PH")))</h4>
+            <div class="card-body">
+                <table class="table section-table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in expenseTransactions) 
+                        {
+                            <tr>
+                                <td>@transaction.Date.ToString("dd-MMM-yy")</td>
+                                <td>@transaction.Category?.Name</td>
+                                <td class="text-danger font-weight-bold">@transaction.Amount.ToString("C2", new CultureInfo("en-PH"))</td>
+                                <td>@transaction.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    @if (savingsTransactions.Any())
+    {
+        <div class="col-md-12">
+            <div class="transaction-section">
+                <h4 class="section-header savings-header">Savings/Transfers (@savingsTotal.ToString("C2", new CultureInfo("en-PH")))</h4>
+                <div class="card-body">
+                    <table class="table section-table table-striped table-hover">
+                         <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in savingsTransactions) 
+                            {
+                                <tr>
+                                    <td>@transaction.Date.ToString("dd-MMM-yy")</td>
+                                    <td>@transaction.Category?.Name</td>
+                                    <td class="text-primary font-weight-bold">@transaction.Amount.ToString("C2", new CultureInfo("en-PH"))</td>
+                                    <td>@transaction.Description</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Data para sa chart
+            const incomeTotal = @incomeTotal;
+            const expenseTotal = @expenseTotal;
+            const savingsTotal = @savingsTotal; 
+            
+            const chartData = {
+                labels: [
+                    'Income',
+                    'Expenses',
+                    'Savings Goal'
+                ],
+                datasets: [{
+                    data: [incomeTotal, expenseTotal, savingsTotal],
+                    backgroundColor: [
+                        '#00BCD4', // Income Color (Cyan)
+                        '#F44336', // Expenses Color (Red)
+                        '#8BC34A'  // Savings Color (Light Green)
+                    ],
+                    hoverOffset: 4
+                }]
+            };
+
+            // Configuration options
+            const config = {
+                type: 'doughnut', 
+                data: chartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right', // Nilipat sa kanan para mas maging katulad ng template
+                        },
+                        title: {
+                            display: false,
+                        }
+                    }
+                }
+            };
+
+            // I-render ang chart
+            new Chart(
+                document.getElementById('incomeExpenseChart'),
+                config
+            );
+        });
+    </script>
+}

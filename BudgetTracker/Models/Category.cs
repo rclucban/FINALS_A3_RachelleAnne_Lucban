@@ -20,8 +20,11 @@ namespace BudgetTracker.Models
         public string Icon { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(10)] // Para sa "Income" o "Expense"
-        // Ito ang magiging basehan ng iyong Report logic
+        [StringLength(10)] // 10 characters ay sapat para sa "Savings" (7 characters)
+        // Ito ang magiging basehan ng iyong Report logic (Values: "Income", "Expense", "Savings")
         public string Type { get; set; } = "Expense";
+
+        // Navigation property (Opsyonal, pero madalas kailangan kung may Transaction model)
+        // public virtual ICollection<Transaction> Transactions { get; set; }
     }
 }

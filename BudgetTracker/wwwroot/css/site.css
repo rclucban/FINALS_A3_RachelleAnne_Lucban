@@ -1,33 +1,58 @@
-/* Gawing black and white ang lahat ng buttons */
-.btn-primary, .btn-primary:hover, .btn-primary:active {
-    background-color: #333 !important; /* Dark Gray / Black */
-    border-color: #333 !important;
-    color: #fff !important;
+/* --- Global Purple Theme Variables --- */
+:root {
+    --primary-purple: #9C27B0; /* Malalim na Purple (Tulad ng sa header ng template) */
+    --light-purple: #E1BEE7; /* Light Purple para sa table headers */
+    --link-color: #7B1FA2; /* Darker Purple for links */
+    --summary-green: #4CAF50;
+    --summary-red: #E91E63;
 }
 
-/* I-set ang main background */
-body {
-    background-color: #f8f8f8; /* Very light gray */
-    color: #333; /* Dark text */
+/* --- Navigation Bar (Header) --- */
+.navbar {
+    background-color: var(--primary-purple) !important; /* Gawing Purple ang background */
+    border-bottom: 3px solid #7B1FA2; /* Magdagdag ng darker border */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Konting shadow */
 }
 
-/* I-alis ang default colors sa navigation links */
-.navbar a, .navbar-brand {
-    color: #333 !important;
+    /* Gawing puti ang lahat ng links sa Navbar */
+    .navbar .nav-link,
+    .navbar .navbar-brand {
+        color: white !important;
+        font-weight: 500;
+    }
+
+        /* Gawing light purple ang hover at active state */
+        .navbar .nav-link:hover {
+            color: var(--light-purple) !important;
+        }
+
+/* --- Primary Links --- */
+a {
+    color: var(--link-color); /* Gawing purple ang lahat ng links sa body */
 }
 
-/* Gawing border lang at walang kulay ang cards/containers */
-.card, .container {
-    border-color: #ccc !important;
-    box-shadow: none !important;
+    a:hover {
+        color: var(--primary-purple);
+    }
+
+/* --- Buttons (Kung gumagamit ka ng primary button) --- */
+.btn-primary {
+    background-color: var(--primary-purple);
+    border-color: var(--primary-purple);
 }
 
-/* Para sa Income/Expense color (Kung gusto mong i-retain ang green/red) */
-.text-success {
-    color: #008000 !important;
+    .btn-primary:hover {
+        background-color: #7B1FA2; /* Darker shade on hover */
+        border-color: #7B1FA2;
+    }
+
+/* --- Form Focus/Highlight (Opsyonal) --- */
+.form-control:focus {
+    border-color: var(--primary-purple);
+    box-shadow: 0 0 0 0.2rem rgba(156, 39, 176, 0.25);
 }
-/* Green */
-.text-danger {
-    color: #cc0000 !important;
+
+/* --- Footer --- */
+.footer {
+    border-top: 1px solid var(--light-purple);
 }
-/* Red */
